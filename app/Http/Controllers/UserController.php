@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
@@ -141,13 +142,13 @@ class UserController extends Controller
             ];
             return response()->json($data);
         }
-        // if($user[2]->password != $request->password){
-        //     $data = [
-        //         "status" => 404,
-        //         "message" => "Usuario no encontrado"
-        //     ];
-        //     return response()->json($data);
-        // }
+        if(! Hash::check($request->password, $user->password)){
+            $data = [
+                "status" => 404,
+                "message" => "Usuario no encontrado"
+            ];
+            return response()->json($data);
+        }
         $token = $user->createToken("myToken")->plainTextToken;
         $data = [
             "status" => 200,
