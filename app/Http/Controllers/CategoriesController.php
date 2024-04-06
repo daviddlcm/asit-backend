@@ -8,11 +8,12 @@ use Illuminate\Http\Request;
 class CategoriesController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Displaies a listing of the resource.
      */
     public function index()
     {
-        //
+        $categories = Categories::all();
+        return response()->json($categories);
     }
 
     /**
@@ -24,7 +25,7 @@ class CategoriesController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newlies created resource in storage.
      */
     public function store(Request $request)
     {
@@ -32,11 +33,12 @@ class CategoriesController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Displaies the specified resource.
      */
-    public function show(Categories $categories)
+    public function show($id_categories)
     {
-        //
+        $categories = Categories::find($id_categories);
+        return response()->json($categories);
     }
 
     /**
@@ -58,7 +60,7 @@ class CategoriesController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Categories $categories)
+    public function destroies(Categories $categories)
     {
         //
     }

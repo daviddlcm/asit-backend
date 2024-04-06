@@ -12,6 +12,8 @@ class ProductsController extends Controller
      */
     public function index()
     {
+        $product = Products::all();
+        return response()->json($product);
         //
     }
 
@@ -28,7 +30,27 @@ class ProductsController extends Controller
      */
     public function store(Request $request)
     {
-        //
+
+           $validatedData = $request->validate([
+            'name' => 'required|max:255',
+            'model' => 'required|max:255',
+            'price' => 'required|integer',
+            'stock' => 'required|integer',
+            'mark' => 'required|max:255',
+            'id_categories' => 'required|exists:categories,id_categories',
+            'id_users' => 'required|exists:users,id_users',
+        ]);
+
+        $product = new Products();
+        $product->name = $validatedData['name'];
+        $product->model = $validatedData['model'];
+        $product->price = $validatedData['price'];
+        $product->stock = $validatedData['stock'];
+        $product->mark = $validatedData['mark'];
+        $product->id_categories = $validatedData['id_categories'];
+        $product->id_users = $validatedData['id_users'];
+        $product->save();
+        return response()->json(['message' => 'Producto creado correctamente'], 201);
     }
 
     /**
@@ -36,13 +58,25 @@ class ProductsController extends Controller
      */
     public function show(Products $products)
     {
-        //
+    
     }
+
+    public function productsByCategory($id_categories)
+    {
+        $product = Products::find($id_categories);    
+        if ($product) {
+            return response()->json($product);
+        } else {
+            return response()->json(['error' => 'No Existen Productos Para esta categoría'], 404);
+        }
+
+    }
+
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Products $products)
+    public function edit(Products $product)
     {
         //
     }
@@ -50,7 +84,7 @@ class ProductsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Products $products)
+    public function update(Request $request, Products $product)
     {
         //
     }
@@ -58,7 +92,7 @@ class ProductsController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Products $products)
+    public function destroy(Products $product)
     {
         //
     }
