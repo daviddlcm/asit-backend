@@ -47,7 +47,8 @@ class UserController extends Controller
         $data = [
             "status" => 201,
             "message" => "Usuario creado correctamente",
-            "data" => $user
+            "data" => $user,
+            "usuarioQueLoCreo" => $request->user()
         ];
         return response()->json($data);
     }
@@ -55,13 +56,10 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($id)
     {
-        $users = DB::table('users')
-             ->select(DB::raw('*'))
-             ->where("id_users", $id)
-             ->get();
-        if($users->isEmpty()){
+        $user = User::find($id);
+        if(!$user){
             $data = [
                 "status" => 404,
                 "message" => "Usuario no encontrado"
@@ -71,7 +69,7 @@ class UserController extends Controller
         $data = [
             "status" => 200,
             "message" => "Usuario encontrado",
-            "data" => $users
+            "data" => $user
         ];
         return response()->json($data);
     }
@@ -87,16 +85,15 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request,$id)
     {
-        $update = DB::table("users")
-            ->where("id_users", $id)
-            ->update([
-                "username" => $request->username,
-                "email" => $request->email,
-                "password" => $request->password,
-                "updated_at" => date("Y-m-d H:i:s")
-            ]);
+            $update = User::find($id);
+            $update->username = $request->username;
+            $update->email = $request->email;
+            $update->password = $request->password;
+            $update->updated_at = now();
+            $update->save();
+
             if($update==0){
                 $data = [
                     "status" => 404,
@@ -115,22 +112,43 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        $deleted = DB::table('users')->where('id_users', $id)->delete();
         $data = [
             "status" => 404,
             "message" => "Usuario no encontrado"
         ];
-        if($deleted==1){
+        $user = User::destroy($id);
+        if($user==1){
             $data = [
                 "status" => 200,
                 "message" => "Usuario eliminado",
-                "data" => $deleted
+                "data" => $user
             ];
             return response()->json($data);
         }
         return response()->json($data);
+    }
+
+
+    public function updatePassword(Request $request,$userId){
+            $user = User::find($userId);
+            if(!$user){
+                $data = [
+                    "status" => 404,
+                    "message" => "Usuario no encontrado"
+                ];
+                return response()->json($data);
+            }
+            $user->password = $request->password;
+            $user->updated_at = now();
+            $user->save();
+            $data = [
+                "status" => 200,
+                "message" => "Usuario actualizado",
+                "data" => $user
+            ];
+            return response()->json($data);
     }
 
     public function logIn(Request $request){

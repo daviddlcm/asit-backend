@@ -13,7 +13,8 @@ Route::get('/users', 'App\Http\Controllers\UserController@index')->middleware('a
 Route::get('/users/{id}', 'App\Http\Controllers\UserController@show')->middleware('auth:sanctum');
 Route::delete("/users/{id}", "App\Http\Controllers\UserController@destroy")->middleware('auth:sanctum');
 Route::put("/users/{id}", "App\Http\Controllers\UserController@update")->middleware('auth:sanctum');
+Route::post('/users', 'App\Http\Controllers\UserController@store')->middleware('auth:sanctum');
+Route::post("/changePassword/{userId}", "App\Http\Controllers\UserController@updatePassword")->middleware('auth:sanctum');
 
 //free routes
 Route::post("/login", "App\Http\Controllers\UserController@logIn");
-Route::post('/users', 'App\Http\Controllers\UserController@store');
