@@ -2,26 +2,36 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\RegisterUsersEmail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         //
-        $users = User::all();
-        $data = [
-            "status" => 200,
-            "message" => "Listado de usuarios",
-            "data" => $users
-        ];
-        return response()->json($data);
+        if($request->user()->id_user_role == 1){
+            $users = User::all();
+            $data = [
+                "status" => 200,
+                "message" => "Listado de usuarios",
+                "data" => $users
+            ];
+            return response()->json($data);
+        }else{
+            $data = [
+                "status" => 401,
+                "message" => "No tienes permisos para acceder a esta información"
+            ];
+            return response()->json($data);
+        }
     }
 
     /**
@@ -38,26 +48,44 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        if($request->user()->id_user_role == 1){
         $user = new User();
         $user->username = $request->username;
         $user->email = $request->email;
-        $user->password = $request->password;
-        $user->id_user_role = $request-> id_user_role;
+        $passwordRandom = $this->createdPasswordRandom();
+        $user->password = $passwordRandom;
+        $user->id_user_role = 2;        
+
+        Mail::to($user->email)->send(new RegisterUsersEmail($user, $passwordRandom));
         $user->save();
+
         $data = [
             "status" => 201,
             "message" => "Usuario creado correctamente",
             "data" => $user,
-            "usuarioQueLoCreo" => $request->user()
+            "password" => $passwordRandom
         ];
         return response()->json($data);
+        }else{
+        $data = [
+            "status" => 401,
+            "message" => "No tienes permisos para acceder a esta información"
+        ];
+        return response()->json($data);
+        }
+    }
+
+    public function createdPasswordRandom(){
+        $password = substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 8);
+        return $password;
     }
 
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(Request $request,$id)
     {
+        if($request->user()->id_user_role == 1){
         $user = User::find($id);
         if(!$user){
             $data = [
@@ -71,7 +99,14 @@ class UserController extends Controller
             "message" => "Usuario encontrado",
             "data" => $user
         ];
-        return response()->json($data);
+            return response()->json($data);
+        }else{
+            $data = [
+                "status" => 401,
+                "message" => "No tienes permisos para acceder a esta información"
+            ];
+            return response()->json($data);
+        }
     }
 
     /**
@@ -87,6 +122,7 @@ class UserController extends Controller
      */
     public function update(Request $request,$id)
     {
+        if($request->user()->id_user_role == 1){
             $update = User::find($id);
             $update->username = $request->username;
             $update->email = $request->email;
@@ -107,27 +143,42 @@ class UserController extends Controller
                 "data" => $update
             ];
             return response()->json($data);
+        }else{
+            $data = [
+                "status" => 401,
+                "message" => "No tienes permisos para acceder a esta información"
+            ];
+            return response()->json($data);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Request $request,$id)
     {
-        $data = [
-            "status" => 404,
-            "message" => "Usuario no encontrado"
-        ];
-        $user = User::destroy($id);
-        if($user==1){
+        if($request->user()->id_user_role == 1){
             $data = [
-                "status" => 200,
-                "message" => "Usuario eliminado",
-                "data" => $user
+                "status" => 404,
+                "message" => "Usuario no encontrado"
+            ];
+            $user = User::destroy($id);
+            if($user==1){
+                $data = [
+                    "status" => 200,
+                    "message" => "Usuario eliminado",
+                    "data" => $user
+                ];
+                return response()->json($data);
+            }
+            return response()->json($data);
+        }else{
+            $data = [
+                "status" => 401,
+                "message" => "No tienes permisos para acceder a esta información"
             ];
             return response()->json($data);
         }
-        return response()->json($data);
     }
 
 
@@ -145,7 +196,7 @@ class UserController extends Controller
             $user->save();
             $data = [
                 "status" => 200,
-                "message" => "Usuario actualizado",
+                "message" => "Password de usuario actualizado",
                 "data" => $user
             ];
             return response()->json($data);
@@ -170,11 +221,20 @@ class UserController extends Controller
         $token = $user->createToken("myToken")->plainTextToken;
         $data = [
             "status" => 200,
-            "message" => "Usuario encontrado",
+            "message" => "Usuario encontrado, logeado correctamente",
             "data" => $user,
             "token" => $token 
         ];
         
+        return response()->json($data);
+    }
+
+    public function logOut(Request $request){
+        $request->user()->currentAccessToken()->delete();
+        $data = [
+            "status" => 200,
+            "message" => "Usuario deslogeado correctamente"
+        ];
         return response()->json($data);
     }
 }
