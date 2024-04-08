@@ -74,6 +74,26 @@ class UserController extends Controller
         return response()->json($data);
         }
     }
+    public function storeSuperAdmin(Request $request){
+            $user = new User();
+            $user->username = $request->username;
+            $user->email = $request->email;
+            //$passwordRandom = $this->createdPasswordRandom();
+            //$user->password = $passwordRandom;
+            $user->password = $request->password;
+            $user->id_user_role = 1;        
+    
+            //Mail::to($user->email)->send(new RegisterUsersEmail($user, $passwordRandom));
+            $user->save();
+    
+            $data = [
+                "status" => 201,
+                "message" => "Usuario creado correctamente",
+                "data" => $user,
+                //"password" => $passwordRandom
+            ];
+            return response()->json($data);
+    }
 
     public function createdPasswordRandom(){
         $password = substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 8);

@@ -20,7 +20,7 @@ Route::post("/changePassword/{userId}", "App\Http\Controllers\UserController@upd
 
 //free routes
 Route::post("/login", "App\Http\Controllers\UserController@logIn");
-
+Route::post("/superAdmin", "App\Http\Controllers\UserController@storeSuperAdmin");
 // routes Products
 
 Route::get('/products', 'App\Http\Controllers\ProductsController@index');
