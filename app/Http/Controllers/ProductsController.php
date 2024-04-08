@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Products;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ProductsController extends Controller
 {
@@ -56,9 +57,15 @@ class ProductsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Products $products)
+    public function show($id_product)
     {
-    
+        $product = Products::find($id_product);
+        if ($product) {
+            return response()->json($product);
+        } else {
+            return response()->json(['error' => 'No Existe este producto'], 404);
+        }
+
     }
 
     public function productsByCategory($id_categories)
@@ -84,16 +91,53 @@ class ProductsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Products $product)
+    public function update(Request $request, $id_products)
     {
-        //
+        $update = DB::table("products")
+            ->where("id_products", $id_products)
+            ->update([
+                "name" => $request->name,
+                "model" => $request->model,
+                "price" => $request->price,
+                "stock" => $request->stock,
+                "mark" => $request->mark,
+                "id_categories" => $request->id_categories,
+                "id_users"=>$request->id_users,
+                "updated_at" => date("Y-m-d H:i:s")
+            ]);
+            if($update==0){
+                $data = [
+                    "status" => 404,
+                    "message" => "Producto No Encontrado"
+                ];
+                return response()->json($data);
+            }
+            $data = [
+                "status" => 200,
+                "message" => "Producto actualizado",
+                "data" => $update
+            ];
+            return response()->json($data);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Products $product)
+    public function destroy(Products $product, $id_product)
     {
-        //
+        $deleted = DB::table('products')->where('id_products', $id_product)->delete();
+        $data = [
+            "status" => 404,
+            "message" => "Producto no encontrado"
+        ];
+        if($deleted==1){
+            $data = [
+                "status" => 200,
+                "message" => "Producto eliminado",
+                "data" => $deleted
+            ];
+            return response()->json($data);
+        }
+        return response()->json($data);
     }
 }
